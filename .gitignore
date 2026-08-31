@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local session state
+.claude/
+
+# Editors
+.vscode/
+.idea/
+
+# Generated run outputs (regenerate via risk_engine/examples scripts)
+risk_engine/risk_engine/examples/*.png
+risk_engine/risk_engine/examples/*.json
+!risk_engine/risk_engine/examples/*.sample.json
+
+# Logs / scratch
+*.log

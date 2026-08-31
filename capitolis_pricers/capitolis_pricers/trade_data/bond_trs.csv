@@ -1,0 +1,5 @@
+trade_id,trade_ccy,bond_id,direction,notional,start_date,end_date,reset_frequency_months,funding_index,spread,fixed_rate,funding_notional,counterparty
+BTRS_0001,USD,Bond_E,pay_tr,10000000,4/17/2026,1/15/2028,3,SOFR,0.0075,,,CPTY_A
+BTRS_0002,USD,Bond_C,pay_tr,40000000,7/15/2026,1/15/2027,,,,0.043,,CPTY_B
+BTRS_0003,USD,Bond_B,pay_tr,5000000,7/15/2026,4/9/2027,,,,0.041,,CPTY_B
+BTRS_0004,USD,Bond_E,pay_tr,12000000,8/4/2026,11/4/2026,,,,0.040593,,CPTY_C

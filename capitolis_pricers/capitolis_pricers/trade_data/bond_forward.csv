@@ -1,0 +1,5 @@
+trade_id,trade_ccy,bond_id,position,forward_date,strike_clean,notional,repo_rate,counterparty
+BF_0001,USD,Bond_A,short,10/30/2026,100,100000000,0.0398,CPTY_A
+BF_0002,USD,Bond_B,short,11/8/2026,100,20000000,0.0397,CPTY_A
+BF_0003,USD,Bond_C,short,12/6/2026,100,500000000,0.0399,CPTY_C
+BF_0004,USD,Bond_D,short,10/25/2026,100,50000000,0.04,CPTY_C
