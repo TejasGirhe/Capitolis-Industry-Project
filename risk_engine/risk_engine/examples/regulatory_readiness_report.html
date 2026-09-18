@@ -1,0 +1,602 @@
+<title>Regulatory Readiness Audit</title>
+<style>
+  :root {
+    --ink: #17140f;
+    --paper: #f7f5ef;
+    --paper-raised: #efece2;
+    --rule: #d8d3c4;
+    --slate: #5b5648;
+    --slate-soft: #837c69;
+    --accent: #6b3a1f;
+    --pass-fg: #1f4a2e;
+    --pass-bg: #e1ead9;
+    --pass-bd: #a9c79b;
+    --partial-fg: #7a4f0a;
+    --partial-bg: #f3e6cd;
+    --partial-bd: #d9b976;
+    --absent-fg: #7a1f1f;
+    --absent-bg: #f3ded9;
+    --absent-bd: #d99b8e;
+    --code-bg: #eeead9;
+    --code-fg: #3a3527;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eae6db;
+      --paper: #15140f;
+      --paper-raised: #1d1c15;
+      --rule: #35331f;
+      --slate: #a39c85;
+      --slate-soft: #7d765f;
+      --accent: #c98a5e;
+      --pass-fg: #a9e0b6;
+      --pass-bg: #16261a;
+      --pass-bd: #2c4a34;
+      --partial-fg: #e7c079;
+      --partial-bg: #2c220f;
+      --partial-bd: #4d3a17;
+      --absent-fg: #e8a99a;
+      --absent-bg: #2c1712;
+      --absent-bd: #4d2620;
+      --code-bg: #1c1b12;
+      --code-fg: #cfc9ae;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #eae6db;
+    --paper: #15140f;
+    --paper-raised: #1d1c15;
+    --rule: #35331f;
+    --slate: #a39c85;
+    --slate-soft: #7d765f;
+    --accent: #c98a5e;
+    --pass-fg: #a9e0b6;
+    --pass-bg: #16261a;
+    --pass-bd: #2c4a34;
+    --partial-fg: #e7c079;
+    --partial-bg: #2c220f;
+    --partial-bd: #4d3a17;
+    --absent-fg: #e8a99a;
+    --absent-bg: #2c1712;
+    --absent-bd: #4d2620;
+    --code-bg: #1c1b12;
+    --code-fg: #cfc9ae;
+  }
+
+  @font-face {
+    font-family: "Source Serif";
+    src: local("Source Serif 4");
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    padding-inline: 24px;
+    padding-block: 64px;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  /* -------------------------------------------------- masthead */
+  .masthead {
+    border-bottom: 3px solid var(--ink);
+    padding-bottom: 28px;
+    margin-bottom: 12px;
+  }
+
+  .masthead .kicker {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 14px;
+  }
+
+  .masthead h1 {
+    font-size: 40px;
+    line-height: 1.1;
+    margin: 0 0 12px;
+    font-weight: 600;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .masthead .dek {
+    font-size: 18px;
+    color: var(--slate);
+    margin: 0;
+    max-width: 62ch;
+    font-style: italic;
+  }
+
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 28px;
+    margin-top: 22px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    color: var(--slate-soft);
+  }
+
+  .meta-row strong {
+    color: var(--slate);
+    font-weight: 600;
+  }
+
+  /* -------------------------------------------------- verdict block */
+  .verdict {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 4px solid var(--accent);
+    padding: 26px 28px;
+    margin: 36px 0 40px;
+  }
+
+  .verdict .label {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+  }
+
+  .verdict p {
+    margin: 0 0 12px;
+    font-size: 17.5px;
+  }
+  .verdict p:last-child { margin-bottom: 0; }
+
+  /* -------------------------------------------------- status pills */
+  .tag {
+    display: inline-block;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 9px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .tag--pass    { color: var(--pass-fg);    background: var(--pass-bg);    border-color: var(--pass-bd); }
+  .tag--partial { color: var(--partial-fg); background: var(--partial-bg); border-color: var(--partial-bd); }
+  .tag--absent  { color: var(--absent-fg);  background: var(--absent-bg);  border-color: var(--absent-bd); }
+
+  /* -------------------------------------------------- table of contents */
+  .toc {
+    columns: 2;
+    column-gap: 32px;
+    margin: 0 0 48px;
+    padding: 20px 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .toc-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12.5px;
+    padding: 5px 0;
+    break-inside: avoid;
+    color: var(--slate);
+  }
+  .toc-item .n { color: var(--accent); }
+  .toc-item a { color: inherit; text-decoration: none; }
+  .toc-item a:hover { text-decoration: underline; }
+  .toc-item .status { flex-shrink: 0; }
+
+  /* -------------------------------------------------- sections */
+  section.area {
+    margin: 0 0 8px;
+    padding: 40px 0 8px;
+    border-top: 1px solid var(--rule);
+  }
+  section.area:first-of-type { border-top: none; }
+
+  .area-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+
+  .area-num {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .area-head h2 {
+    font-size: 24px;
+    margin: 0;
+    font-weight: 600;
+    flex: 1 1 auto;
+    min-width: 200px;
+  }
+
+  h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 28px 0 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  h3 .tag { transform: translateY(-1px); }
+
+  p { margin: 0 0 15px; max-width: 68ch; }
+  ul, ol { margin: 0 0 15px; padding-left: 1.3em; max-width: 66ch; }
+  li { margin-bottom: 6px; }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.86em;
+    background: var(--code-bg);
+    color: var(--code-fg);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 14px 18px;
+    overflow-x: auto;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 0 0 16px;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  .cite {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--slate-soft);
+  }
+
+  .callout {
+    background: var(--paper-raised);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--slate-soft);
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: 15.5px;
+  }
+  .callout.critical { border-left-color: var(--absent-fg); }
+  .callout p:last-child { margin-bottom: 0; }
+
+  /* -------------------------------------------------- gap ledger table */
+  .ledger {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0 40px;
+    font-size: 14.5px;
+  }
+  .ledger caption {
+    text-align: left;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  .ledger th {
+    text-align: left;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--slate-soft);
+    border-bottom: 2px solid var(--ink);
+    padding: 8px 10px 8px 0;
+  }
+  .ledger td {
+    padding: 10px 10px 10px 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .ledger tr:last-child td { border-bottom: none; }
+  .ledger .status-col { width: 92px; }
+  .ledger .area-col { width: 140px; color: var(--slate); font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px; }
+
+  .overflow-x { overflow-x: auto; }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--slate-soft);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; padding-inline: 18px; }
+    .masthead h1 { font-size: 30px; }
+    .toc { columns: 1; }
+    .area-head h2 { font-size: 20px; }
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <p class="kicker">Model Validation Memo — Internal Review Draft</p>
+    <h1>How close is this to a regulatory-grade risk engine?</h1>
+    <p class="dek">A ground-truth audit of the Capitolis counterparty credit risk / XVA engine, read at the level of individual formulas, calibration routines, and fallback chains — not the architecture diagram.</p>
+    <div class="meta-row">
+      <span><strong>Scope</strong> risk_engine/ (models, calibration, simulation, pricing, netting, exposure, XVA, greeks, data, tests)</span>
+      <span><strong>Method</strong> direct source reading, file:line citations</span>
+      <span><strong>Trades covered</strong> Bond Forward · Equity TRS · Bond TRS</span>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <p class="label">Bottom line</p>
+    <p><strong>This is a well-built research and pricing-validation engine — not yet a regulatory-submission engine.</strong> The market-risk core (curve/vol calibration, joint Monte Carlo, exposure profiles) is unusually rigorous for a project this size, with real data, honest fallback disclosure, and genuine closed-form correctness tests. But three areas a regulator would test first — <strong>collateral/CSA modeling</strong>, <strong>wrong-way risk</strong>, and <strong>SA-CCR's capital chain</strong> — are either absent or stubbed out, and the credit side (PD, CVA) runs on a proxy, not real counterparty curves.</p>
+    <p>Put differently: if a model-validation team's first question is <em>"does the market-risk engine behave correctly,"</em> the answer is largely yes, and it's tested. If their first question is <em>"is the capital number right,"</em> the answer is no — that machinery doesn't exist yet.</p>
+  </div>
+
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-item"><span><span class="n">01</span> Rate, equity &amp; FX models</span><span class="status"><span class="tag tag--partial">Partial</span></span></div>
+    <div class="toc-item"><span><span class="n">02</span> Calibration method</span><span class="status"><span class="tag tag--partial">Partial</span></span></div>
+    <div class="toc-item"><span><span class="n">03</span> Joint simulation &amp; interpolation</span><span class="status"><span class="tag tag--pass">Present</span></span></div>
+    <div class="toc-item"><span><span class="n">04</span> Pricing engine</span><span class="status"><span class="tag tag--pass">Present</span></span></div>
+    <div class="toc-item"><span><span class="n">05</span> Netting</span><span class="status"><span class="tag tag--partial">Partial</span></span></div>
+    <div class="toc-item"><span><span class="n">06</span> Exposure &amp; collateral</span><span class="status"><span class="tag tag--partial">Partial</span></span></div>
+    <div class="toc-item"><span><span class="n">07</span> Credit &amp; XVA</span><span class="status"><span class="tag tag--absent">Gaps</span></span></div>
+    <div class="toc-item"><span><span class="n">08</span> Greeks &amp; SA-CCR</span><span class="status"><span class="tag tag--partial">Partial</span></span></div>
+    <div class="toc-item"><span><span class="n">09</span> Data sourcing</span><span class="status"><span class="tag tag--pass">Present</span></span></div>
+    <div class="toc-item"><span><span class="n">10</span> Testing &amp; validation</span><span class="status"><span class="tag tag--partial">Partial</span></span></div>
+  </nav>
+
+  <!-- ============================================================ 01 -->
+  <section class="area" id="s01">
+    <div class="area-head">
+      <span class="area-num">01</span>
+      <h2>Rate, equity &amp; FX models</h2>
+      <span class="tag tag--partial">Partial</span>
+    </div>
+
+    <h3>Short-rate model — LGM, 1F and 2F <span class="tag tag--pass">Present</span></h3>
+    <p>A proper Linear Gauss-Markov (separable Hull-White) implementation, in all four registered variants: <code>LGM1F</code>, <code>LGM1F_SV</code>, <code>LGM2F</code>, <code>LGM2F_SV</code>. The discount-factor reconstruction is exact by construction:</p>
+    <pre><code>DF(t,T) = DF(0,T)/DF(0,t) · exp( -Σᵢ Hᵢ(u)·xᵢ(t) - ½·Σᵢⱼ Hᵢ Hⱼ ρᵢⱼ √(ζᵢζⱼ) )
+H(u) = (1 - e^(-a·u)) / a</code></pre>
+    <p class="cite">models/lgm.py:16–20, 60–86 — verified against a martingale property test, see §10.</p>
+    <p>The 2F variance split between short- and long-rate factors is a <strong>hardcoded 70/30 split</strong> (<code>frac2 = 0.30</code>), described in-code as a "literature-typical prior," not something fit to the data.</p>
+
+    <h3>Stochastic vol — a real gap between what's fit and what's simulated <span class="tag tag--partial">Partial</span></h3>
+    <p>Volatility is stochastic via a CIR multiplier on the deterministic term-structure vol:</p>
+    <pre><code>dv = κ(1 - v)dt + η√v·dW_v          (mean-reverts to 1, dimensionless)
+σ_eff(t) = σ(t) · √v(t)</code></pre>
+    <div class="callout critical">
+      <p><strong>The correlation parameter <code>ρ</code> between the rate/asset shock and its own vol-of-vol shock is calibrated, reported in the model's assumptions — and then never applied.</strong> <code>simulate_cir_variance_step</code> takes <code>(v_prev, κ, η, dt, z)</code> with no leverage term tying <code>z</code> to the asset's own Brownian draw. The vol-of-vol shock is drawn fully independently for every factor (LGM, GBM, FXGBM alike). This means the engine reports a fit skew/leverage parameter that is inert in the actual paths — a real correctness gap, not just a modeling simplification.</p>
+    </div>
+    <p class="cite">models/lgm.py:157; models/_shared.py:106–112; same pattern in gbm.py:98–101 and fx.py.</p>
+
+    <h3>Equity — GBM / GBM_SV <span class="tag tag--pass">Present</span></h3>
+    <p>Drift is genuinely path-consistent — <code>r(t)</code> is read off the same simulated LGM path via <code>discount_factor()</code>, not a static curve. The same SV-correlation gap above applies here.</p>
+
+    <h3>FX — FXGBM / FXGBM_SV, with a real dual-currency upgrade <span class="tag tag--pass">Present</span></h3>
+    <p>Two modes exist: a preferred path where the foreign (JPY) rate is a genuinely simulated, jointly-correlated LGM factor calibrated off real Bloomberg JPY data; and a deterministic covered-interest-parity fallback when that data is unavailable. Both are coded, tested, and the choice between them is printed explicitly at runtime — never silent.</p>
+  </section>
+
+  <!-- ============================================================ 02 -->
+  <section class="area" id="s02">
+    <div class="area-head">
+      <span class="area-num">02</span>
+      <h2>Calibration method</h2>
+      <span class="tag tag--partial">Partial</span>
+    </div>
+    <p>No iterative optimizer anywhere in the calibration path — everything is closed-form or a direct read off market data. That's a defensible design choice for the parts that are truly closed-form (LGM's forward-matching is exact by construction), but it also means several parameters that sound "calibrated" are really just literature defaults:</p>
+    <ul>
+      <li><strong>Volatility term structure</strong> — read directly off ATM pillars, not bootstrapped against option prices.</li>
+      <li><strong><code>κ</code> (mean-reversion speed of variance) is <em>always</em> the literature prior</strong>, for every asset class, including where a real vol cube exists — there's no swaption/cap grid in this data that identifies it.</li>
+      <li><strong>FX smile/skew is never actually calibrated.</strong> The only FX vol data available is a single ATM snapshot, so the skew-fit routine always fails its own <code>len(strikes) &lt; 3</code> check and silently falls back to the hardcoded FX prior (<code>κ=1.0, η=0.35, ρ=0.0</code>).</li>
+      <li>The Bloomberg rate "smile" fit is along the <strong>swap-tenor axis</strong>, not moneyness — a labeling nuance that's documented in-code but easy to misread as real skew calibration.</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ 03 -->
+  <section class="area" id="s03">
+    <div class="area-head">
+      <span class="area-num">03</span>
+      <h2>Joint simulation &amp; interpolation</h2>
+      <span class="tag tag--pass">Present</span>
+    </div>
+    <p>This is the strongest part of the codebase. A real N-factor joint Monte Carlo: one Cholesky decomposition of a cross-factor correlation matrix, sourced from historical realized correlation, with an unconditional PSD repair step (eigenvalue clipping to a strict positive floor) applied before every factorization — a defensive choice explicitly justified because LAPACK's Cholesky can fail on eigenvalues as small as <span class="mono">-1.85e-15</span> that pass a naive tolerance check.</p>
+    <p>One documented simplification: a 2F rate model's two internal factors share a single cross-correlation to any other factor — there's no way to give the short- and long-rate components independently different correlations to, say, equity.</p>
+
+    <h3>Brownian-bridge interpolation — correct, but the safer mode isn't the default <span class="tag tag--partial">Partial</span></h3>
+    <p>A full conditional-variance bridge is implemented and mathematically correct, but <strong>production pricing runs use the mean-only bridge by default</strong> (<code>add_bridge_noise=False</code>). That understates variance between simulation-grid nodes for any exposure metric read off an off-grid date — which, given a 28-date simulation grid against ~94 regression dates, is most of them.</p>
+  </section>
+
+  <!-- ============================================================ 04 -->
+  <section class="area" id="s04">
+    <div class="area-head">
+      <span class="area-num">04</span>
+      <h2>Pricing engine</h2>
+      <span class="tag tag--pass">Present</span>
+    </div>
+    <p>Full repricing per path per date — not regression-based. There is no Longstaff-Schwartz or any continuation-value estimator anywhere in the codebase, which is fine because there's nothing that needs it: <strong>exactly three trade types exist, all linear, European, with no early-exercise optionality</strong> — Bond Forward, Equity TRS, Bond TRS. No swaptions, no options of any kind are actually priced (despite swaption <em>vol data</em> being sourced for rate calibration).</p>
+    <p>A documented, deliberate bug-fix worth noting: the underlying pricer library doesn't check a trade's maturity against the valuation date, so this engine explicitly excludes matured trades per regression date — otherwise settled trades would keep contributing phantom exposure.</p>
+  </section>
+
+  <!-- ============================================================ 05 -->
+  <section class="area" id="s05">
+    <div class="area-head">
+      <span class="area-num">05</span>
+      <h2>Netting</h2>
+      <span class="tag tag--partial">Partial</span>
+    </div>
+    <p>Netting sets are, by the code's own admission, a 1:1 stand-in for counterparties — trades are grouped purely by a <code>.counterparty</code> string. There's no representation of an actual ISDA Master Agreement, no support for multiple netting agreements per counterparty, and no cross-product netting-eligibility logic. The code is honest about this being deliberately deferred, not an oversight: the class is kept separate specifically so a real multi-agreement structure is "a config change later, not a redesign."</p>
+  </section>
+
+  <!-- ============================================================ 06 -->
+  <section class="area" id="s06">
+    <div class="area-head">
+      <span class="area-num">06</span>
+      <h2>Exposure &amp; collateral</h2>
+      <span class="tag tag--partial">Partial</span>
+    </div>
+    <h3>Exposure metrics <span class="tag tag--pass">Present</span></h3>
+    <p>The full standard set, at both 95% and 99%: EE, NEE, PFE, MPE, EEPE (Basel trapezoidal time-weighting over the first year), plus a non-standard conditional tail-mean extension beyond PFE. Exposure itself already bakes in a Margin Period of Risk — a 10-business-day close-out window with a 1-day variation-margin lag, both hardcoded defaults.</p>
+
+    <h3>Collateral / CSA modeling <span class="tag tag--absent">Absent</span></h3>
+    <div class="callout critical">
+      <p>There is exactly one margin model in the codebase, <code>ZeroMargin</code>, and it always returns zero collateral. <strong>No threshold, no minimum transfer amount, no independent amount exist anywhere in the tree.</strong> The module's own docstring lists these as explicitly out of scope, tied to a stated project assumption of no initial margin. MPoR is modeled as a fixed window, not as a property of an actual CSA.</p>
+      <p>This is the single largest gap standing between "exposure profile" and "regulatory exposure profile" — collateralization is usually the first thing a model-risk reviewer asks about.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ 07 -->
+  <section class="area" id="s07">
+    <div class="area-head">
+      <span class="area-num">07</span>
+      <h2>Credit &amp; XVA</h2>
+      <span class="tag tag--absent">Gaps</span>
+    </div>
+    <h3>CVA / DVA / FVA <span class="tag tag--pass">Present</span></h3>
+    <p>Standard unilateral formulas, correctly discounted and summed over the exposure profile's own anchor dates:</p>
+    <pre><code>CVA = (1 − R_cpty) · Σₜ DF(0,t) · EE(t)  · PD_cpty(t₋,t)
+DVA = (1 − R_own)  · Σₜ DF(0,t) · |NEE(t)| · PD_own(t₋,t)
+FVA =                Σₜ DF(0,t) · EE(t)  · s_funding · Δt(t₋,t)</code></pre>
+
+    <h3>Probability of default — a rating-bucket proxy, not real counterparty credit <span class="tag tag--partial">Partial</span></h3>
+    <p>Real FRED data (Moody's Aaa/Baa corporate yields, less the Treasury curve) sets two anchor spreads, and each counterparty is <strong>ranked by book notional and linearly interpolated a spread between them</strong> — larger relationship assumed more creditworthy. This is explicitly flagged in-code as an assumption, not a credit assessment; there's no term structure to the spread, and the own-entity (Capitolis) credit curve for DVA reuses the same mid-tier proxy.</p>
+
+    <h3>Wrong-way risk <span class="tag tag--absent">Absent</span></h3>
+    <p>Exposure and default probability are computed on entirely separate, uncorrelated pipelines. There is no channel anywhere that would let a counterparty's default likelihood move with the very market factors driving their exposure — the single most consequential CVA modeling risk in practice, and it isn't represented at all.</p>
+
+    <h3>KVA, MVA, real CDS curves <span class="tag tag--absent">Absent</span></h3>
+    <p>No capital valuation adjustment, no margin valuation adjustment, and no CDS-curve bootstrap or CDS instrument pricing exist anywhere in the tree.</p>
+  </section>
+
+  <!-- ============================================================ 08 -->
+  <section class="area" id="s08">
+    <div class="area-head">
+      <span class="area-num">08</span>
+      <h2>Greeks &amp; SA-CCR</h2>
+      <span class="tag tag--partial">Partial</span>
+    </div>
+    <h3>Vega — bump-and-reprice, one-sided <span class="tag tag--pass">Present</span></h3>
+    <p>A full precache→price→profile pipeline is re-run under a shifted vol surface and differenced against base:</p>
+    <pre><code>vega = (metric_shocked − metric_base) / bump_size</code></pre>
+    <p>Explicitly a forward, not central, difference — the code says so directly. No AAD or adjoint differentiation exists anywhere in the project; this is the standard, if computationally heavier, bump-and-reprice approach.</p>
+
+    <h3>SA-CCR — only the first stage of the chain <span class="tag tag--partial">Partial</span></h3>
+    <p>Supervisory duration and the Basel III Table 2 supervisory factors are correctly implemented, and per-asset-class delta is aggregated correctly. But that's where it stops:</p>
+    <div class="overflow-x">
+    <table class="ledger">
+      <caption>SA-CCR component coverage</caption>
+      <thead><tr><th>Component</th><th class="status-col">Status</th></tr></thead>
+      <tbody>
+        <tr><td>Supervisory duration, supervisory factors</td><td><span class="tag tag--pass">Present</span></td></tr>
+        <tr><td>Per-asset-class delta aggregation</td><td><span class="tag tag--pass">Present</span></td></tr>
+        <tr><td>Replacement Cost (RC)</td><td><span class="tag tag--absent">Absent</span></td></tr>
+        <tr><td>PFE add-on across hedging sets / maturity buckets</td><td><span class="tag tag--absent">Absent</span></td></tr>
+        <tr><td>Multiplier term</td><td><span class="tag tag--absent">Absent</span></td></tr>
+        <tr><td>EAD = α·(RC + AddOn)</td><td><span class="tag tag--absent">Absent</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>The module's own docstring says as much: this computes the delta input stage, not the capital number itself.</p>
+  </section>
+
+  <!-- ============================================================ 09 -->
+  <section class="area" id="s09">
+    <div class="area-head">
+      <span class="area-num">09</span>
+      <h2>Data sourcing</h2>
+      <span class="tag tag--pass">Present</span>
+    </div>
+    <p>This is where the project earns real credibility: every real/fallback boundary is explicit, printed at runtime, and never silent.</p>
+    <div class="overflow-x">
+    <table class="ledger">
+      <caption>Source → fallback chains</caption>
+      <thead><tr class="area-row"><th class="area-col">Series</th><th>Primary</th><th>Fallback chain</th></tr></thead>
+      <tbody>
+        <tr><td class="area-col">USD curve</td><td>Bloomberg SWPM zero curve</td><td>FRED SOFR + T-bill/Treasury bootstrap</td></tr>
+        <tr><td class="area-col">USD rate vol</td><td>Bloomberg ATM swaption cube</td><td>Databento SOFR-futures proxy → flat 1.0%</td></tr>
+        <tr><td class="area-col">JPY curve/vol</td><td>Bloomberg OIS + swaption cube</td><td>Deterministic CIP-implied curve (no real JPY rate factor)</td></tr>
+        <tr><td class="area-col">Equity spot/vol/corr</td><td>Yahoo Finance (realized)</td><td>— (single source; documented as backward-looking, not implied)</td></tr>
+        <tr><td class="area-col">Equity vol scale</td><td>Bloomberg SPX/TOPIX implied ratio</td><td>Ratio = 1.0 (unscaled)</td></tr>
+        <tr><td class="area-col">FX spot/vol</td><td>Yahoo spot; Bloomberg ATM slice</td><td>Forward points derived via CIP, not observed</td></tr>
+        <tr><td class="area-col">Credit spreads</td><td>FRED Moody's Aaa/Baa</td><td>— (no free single-name CDS source exists)</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Two caveats worth carrying forward: FX vol only ever uses the ATM slice even when a real Bloomberg smile snapshot exists (the strike-conversion machinery isn't wired up), and equity vol scaling is a single market-wide ratio applied uniformly to every name, not a per-name implied vol.</p>
+  </section>
+
+  <!-- ============================================================ 10 -->
+  <section class="area" id="s10">
+    <div class="area-head">
+      <span class="area-num">10</span>
+      <h2>Testing &amp; validation</h2>
+      <span class="tag tag--partial">Partial</span>
+    </div>
+    <h3>Closed-form correctness tests <span class="tag tag--pass">Present</span></h3>
+    <p>Genuinely rigorous, not smoke tests. The forward-matching test simulates 50,000 paths per model variant and checks the martingale property <code>E[DF(t,T)] ≈ DF(0,T)/DF(0,t)</code> against an MC-noise-scaled tolerance — a real no-arbitrage check, run across all four LGM variants. A separate end-to-end test confirms the full precache → bridge-interpolate → price pipeline reproduces a direct snapshot valuation at t=0.</p>
+
+    <h3>Regulatory-standard backtesting <span class="tag tag--absent">Absent</span></h3>
+    <p>No test or module anywhere back-tests simulated PFE/EE against subsequently realized market outcomes — the standard supervisory expectation (e.g. Kupiec-style coverage testing, traffic-light backtesting) for an exposure model. What exists validates internal consistency; nothing validates predictive accuracy against history.</p>
+  </section>
+
+  <!-- ============================================================ gap ledger -->
+  <section class="area" id="gaps" style="padding-top: 8px;">
+    <div class="area-head" style="margin-top: 32px;">
+      <h2 style="font-size: 22px;">What stands between this and a submission-ready engine</h2>
+    </div>
+    <div class="overflow-x">
+    <table class="ledger">
+      <caption>Ordered roughly by how quickly a regulator or model-validation reviewer would raise it</caption>
+      <thead><tr><th>Gap</th><th class="status-col">Severity</th></tr></thead>
+      <tbody>
+        <tr><td>Collateral/CSA modeling — no threshold, MTA, or independent amount</td><td><span class="tag tag--absent">Critical</span></td></tr>
+        <tr><td>Wrong-way risk — exposure and PD are fully uncorrelated</td><td><span class="tag tag--absent">Critical</span></td></tr>
+        <tr><td>SA-CCR — RC, PFE add-on, multiplier, EAD all absent</td><td><span class="tag tag--absent">Critical</span></td></tr>
+        <tr><td>PD is a notional-ranked proxy, not real counterparty credit curves</td><td><span class="tag tag--partial">Major</span></td></tr>
+        <tr><td>PFE/EE backtesting against realized outcomes — absent</td><td><span class="tag tag--partial">Major</span></td></tr>
+        <tr><td>SV leverage correlation (ρ) fit but never applied in simulation</td><td><span class="tag tag--partial">Major</span></td></tr>
+        <tr><td>Mean-only Brownian bridge is the production default</td><td><span class="tag tag--partial">Moderate</span></td></tr>
+        <tr><td>Netting sets ≠ real ISDA/CSA hierarchy</td><td><span class="tag tag--partial">Moderate</span></td></tr>
+        <tr><td>KVA / MVA — not implemented</td><td><span class="tag tag--partial">Moderate</span></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>Compiled from a direct source-code audit — every claim above traces to a specific file and line.</span>
+    <span>risk_engine/ · internal review draft</span>
+  </footer>
+
+</div>

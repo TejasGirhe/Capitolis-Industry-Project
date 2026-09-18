@@ -1,11 +1,18 @@
 """
-NettingSet: a group of trades netted together for exposure purposes. For
-this book, netting_set.id == counterparty (capitolis_pricers' README:
-"every trade carries a counterparty -- the netting-set key your simulation
-groups by to net exposures"), one NettingSet per counterparty. Kept as its
-own class rather than collapsed into Counterparty so a book with multiple
-netting agreements per counterparty is a config change later, not a
-redesign.
+NettingSet: a group of trades netted together for exposure purposes.
+
+netting_set.id is now a DUMMY netting-agreement id, independent of (though
+currently still 1:1 derived from) counterparty id -- see
+build_netting_hierarchy's DUMMY_NETTING_AGREEMENT_SUFFIX. This project has
+no real ISDA/CSA agreement data (no per-counterparty agreement count,
+product-eligibility, or legal-netting-opinion feed), so a real multi-
+agreement-per-counterparty book cannot be represented yet -- but the id is
+no longer a bare alias for counterparty, so a real agreement feed can be
+wired in later by changing build_netting_hierarchy's grouping key alone,
+without touching NettingSet, Counterparty, or any exposure/pricing code
+that reads netting_set.id. Confirmed as a stated simplification (see
+risk_engine/examples/regulatory_readiness_report.html Sec.05), not
+something this change claims to have solved.
 """
 from dataclasses import dataclass
 from typing import List
@@ -13,7 +20,8 @@ from typing import List
 
 @dataclass
 class NettingSet:
-    id: str
+    id: str            # DUMMY netting-agreement id (see module docstring), not a counterparty id
+    counterparty_id: str
     trade_ids: List[str]
 
     def netted_npv(self, curve_result, curve: str, path: int, date, exclude_trade_ids=()) -> float:

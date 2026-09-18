@@ -30,7 +30,10 @@ from typing import Optional
 import numpy as np
 
 from .base import SpotModel, CalibratedSpotModel
-from ._shared import bootstrap_sigma, PiecewiseSigma, fit_theta, fit_skew_smile, year_frac, simulate_cir_variance_step
+from ._shared import (
+    bootstrap_sigma, PiecewiseSigma, fit_theta, fit_skew_smile, year_frac,
+    simulate_cir_variance_step, leveraged_vol_shock,
+)
 from ..calibration import priors as _priors
 
 
@@ -96,7 +99,7 @@ class _CalibratedGBM(CalibratedSpotModel):
             z = external_z[:, step, 0] if external_z is not None else rng.standard_normal(n_paths)
             sigma_t = self.sigma.at(t0)
             if has_sv:
-                vz = rng.standard_normal(n_paths)
+                vz = leveraged_vol_shock(z, self.sv.rho, rng, n_paths)
                 v[:, step + 1] = simulate_cir_variance_step(v[:, step], self.sv.kappa, self.sv.eta, dt, vz)
                 eff_sigma = sigma_t * np.sqrt(np.maximum(v[:, step], 0.0))
             else:

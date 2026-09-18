@@ -76,20 +76,39 @@ class CalibratedRateModel(ABC):
         per factor)."""
         raise NotImplementedError
 
-    def state_at(self, cached_path, sim_times: List[float], t: float):
+    def state_at(self, cached_path, sim_times: List[float], t: float,
+                 add_bridge_noise: bool = True, seed_salt: str = "", external_z=None):
         """Interpolate this factor's state at year-fraction t from a path
         already simulated ONLY on sim_times (the fixed simulation grid) --
-        no new Monte Carlo draw. Conditional-mean Brownian bridge, weighted
-        by accumulated variance (zeta), not raw calendar time -- see
+        no new Monte Carlo draw. Brownian bridge, weighted by accumulated
+        variance (zeta), not raw calendar time -- see
         risk_engine.simulation.interpolate for the derivation. Exact (no
         interpolation) when t lands exactly on a grid date.
+
+        add_bridge_noise/seed_salt/external_z: full bridge (mean +
+        conditional-variance noise) by DEFAULT -- see
+        risk_engine.simulation.interpolate.interpolate_state's docstring.
+        Pass False for the OLD mean-only behavior (kept for regression
+        comparison only, see examples/bridge_vs_full_grid.py). external_z, if
+        given, is (n_paths, n_drivers) -- one pre-correlated noise column
+        PER BROWNIAN DRIVER, e.g. LGM2F's 2 columns for its 2 drivers.
+        n_drivers is NOT always the same as cached_path's number of state
+        columns (a rate model's state has exactly one column per driver --
+        see models/lgm.py's simulate_paths -- but that need not hold for
+        every model family in general), so external_z is sliced by driver
+        index `i` up to external_z.shape[1], and any remaining state
+        columns beyond that get no noise (mean only).
         """
         from ..simulation.interpolate import interpolate_state
         n_factors = cached_path.shape[-1]
+        n_ext = external_z.shape[1] if external_z is not None else 0
         cols = []
         for i in range(n_factors):
+            ext_z_i = external_z[:, i] if i < n_ext else None
             cols.append(interpolate_state(cached_path[:, :, i:i + 1], sim_times, t,
-                                           lambda tt, i=i: self.zeta(i, tt)))
+                                           lambda tt, i=i: self.zeta(i, tt),
+                                           add_bridge_noise=add_bridge_noise,
+                                           seed_salt=f"{seed_salt}|dim{i}", external_z=ext_z_i))
         import numpy as np
         return np.concatenate(cols, axis=-1)
 
@@ -159,15 +178,23 @@ class CalibratedSpotModel(ABC):
         martingale components separately."""
         raise NotImplementedError
 
-    def state_at(self, cached_path, sim_times: List[float], t: float):
+    def state_at(self, cached_path, sim_times: List[float], t: float,
+                 add_bridge_noise: bool = True, seed_salt: str = "", external_z=None):
         """Interpolate this factor's [log_growth, zeta_or_zero] state at
         year-fraction t from a path simulated ONLY on sim_times -- see
         CalibratedRateModel.state_at for the shared bridge-interpolation
-        mechanics; the only difference here is the zeta() source."""
+        mechanics, the add_bridge_noise/seed_salt/external_z opt-in, and why
+        external_z is sliced by DRIVER count (1 for a spot factor) rather
+        than by this state's own column count (2: log_growth + zeta); the
+        only difference here is the zeta() source."""
         from ..simulation.interpolate import interpolate_state
         import numpy as np
         n_factors = cached_path.shape[-1]
+        n_ext = external_z.shape[1] if external_z is not None else 0
         cols = []
         for i in range(n_factors):
-            cols.append(interpolate_state(cached_path[:, :, i:i + 1], sim_times, t, self.zeta))
+            ext_z_i = external_z[:, i] if i < n_ext else None
+            cols.append(interpolate_state(cached_path[:, :, i:i + 1], sim_times, t, self.zeta,
+                                           add_bridge_noise=add_bridge_noise,
+                                           seed_salt=f"{seed_salt}|dim{i}", external_z=ext_z_i))
         return np.concatenate(cols, axis=-1)

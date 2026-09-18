@@ -89,14 +89,30 @@ def source_market_data(equities_csv_path: str, ref_date: date, history_range: st
         vol = realized_vol(hist["close"])
         equity_vol_surface[isin] = flat_vol_surface(f"EQ_{isin}", flat_vol=vol)
 
-    # --- Dividend rates: MARKET_DATA.md Sec.3 -- NOT sourced here ---------
-    # Yahoo's chart API used elsewhere in this module does not carry a
-    # forward dividend YIELD (only historical cash dividend events on a
-    # separate, less reliable endpoint); MARKET_DATA.md explicitly leaves
-    # sourcing method up to the student ("implied, put-call parity...").
-    # Zeroed rather than left out, so build_market_data's dict always has
-    # the key -- do not treat 0.0 as a sourced number, it's an honest gap.
-    equity_dividend_rates = {isin: 0.0 for isin in equity_spot}
+    # --- Dividend rates: MARKET_DATA.md Sec.3 -- sourced via Databento -----
+    # Yahoo's chart API (used above for spot/vol) does not carry a forward
+    # dividend YIELD at all; MARKET_DATA.md explicitly leaves sourcing
+    # method up to the student ("implied, put-call parity..."). Put-call
+    # parity against REAL OPRA (US consolidated options tape) quotes,
+    # sourced via Databento, is now used -- see market_data/
+    # databento_dividends.py's module docstring for the exact method,
+    # its American-vs-European limitation, and why this was NOT viable via
+    # Yahoo (broken/zero bid-ask-OI fields, confirmed directly earlier in
+    # this project). Names Databento cannot price (JPY-listed tickers --
+    # OPRA only covers US-listed equity options -- or any name whose
+    # extraction fails/returns no usable pair) fall back to 0.0, same as
+    # before: an honest gap, not a faked non-zero number.
+    from .databento_dividends import fetch_implied_dividend_yield
+    equity_dividend_rates = {}
+    for isin in equity_spot:
+        ticker = isin_to_ticker.get(isin, "")
+        q = None
+        if ticker and "." not in ticker:   # crude US-listing filter: JPY tickers carry a numeric+suffix form (e.g. "6902.T"), never bare
+            try:
+                q = fetch_implied_dividend_yield(ticker, ref_date, equity_spot[isin], usd_curve)
+            except Exception:
+                q = None   # any fetch/parity failure for this one name -- fall back, don't abort the whole book
+        equity_dividend_rates[isin] = q if q is not None else 0.0
 
     # --- FX: MARKET_DATA.md Sec.2.2 ----------------------------------------
     fx_spot = implied_jpy_curve = fx_vol_surface = fx_hist = None

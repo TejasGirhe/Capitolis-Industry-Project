@@ -37,6 +37,7 @@ from .base import RateModel, CalibratedRateModel
 from ._shared import (
     mean_reversion_shift, bootstrap_sigma, PiecewiseSigma, fit_theta,
     fit_skew_smile, year_frac, shift_date, simulate_cir_variance_step,
+    leveraged_vol_shock,
 )
 from ..calibration import priors as _priors
 
@@ -154,7 +155,7 @@ class _CalibratedLGM(CalibratedRateModel):
             for i, a_i in enumerate(self.mean_reversion):
                 sigma_t = self.sigma[i].at(t0)
                 if has_sv:
-                    vz = rng.standard_normal(n_paths)
+                    vz = leveraged_vol_shock(z[:, i], self.sv.rho, rng, n_paths)
                     vprev = v[:, step, i]
                     v[:, step + 1, i] = simulate_cir_variance_step(vprev, self.sv.kappa, self.sv.eta, dt, vz)
                     eff_sigma = sigma_t * np.sqrt(np.maximum(v[:, step, i], 0.0))

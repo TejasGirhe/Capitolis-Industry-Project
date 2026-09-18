@@ -26,6 +26,11 @@ Thumbs.db
 risk_engine/risk_engine/examples/*.png
 risk_engine/risk_engine/examples/*.json
 !risk_engine/risk_engine/examples/*.sample.json
+risk_engine/risk_engine/examples/benchmark_results/
 
 # Logs / scratch
 *.log
+
+# Raw third-party data drops (not code; regenerate/refetch as needed)
+data_bloomberg/
+data_bloomberg.zip

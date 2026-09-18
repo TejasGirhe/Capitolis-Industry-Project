@@ -29,8 +29,20 @@ _TENOR_YEARS = {
 
 
 def tenor_to_years(t):
-    if isinstance(t, str) and t.upper() in _TENOR_YEARS:
-        return _TENOR_YEARS[t.upper()]
+    """Accepts a known label from _TENOR_YEARS (kept for backward
+    compatibility with existing callers), a general '<n><W|M|Y>' label
+    (e.g. '1W', '4M', '21M', '35Y' -- real Bloomberg SWPM/VCUB tenor labels
+    this project did not previously need to parse, confirmed against the
+    actual data_bloomberg files rather than a guessed superset), or a bare
+    number (already in years)."""
+    if isinstance(t, str):
+        s = t.strip().upper()
+        if s in _TENOR_YEARS:
+            return _TENOR_YEARS[s]
+        if len(s) >= 2 and s[-1] in ("D", "W", "M", "Y") and s[:-1].replace(".", "", 1).isdigit():
+            n = float(s[:-1])
+            unit_years = {"D": 1 / 365.0, "W": 7 / 365.0, "M": 1 / 12, "Y": 1.0}[s[-1]]
+            return n * unit_years
     return float(t)
 
 

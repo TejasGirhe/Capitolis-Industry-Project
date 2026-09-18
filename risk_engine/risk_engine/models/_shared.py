@@ -107,6 +107,37 @@ def simulate_cir_variance_step(v_prev, kappa, eta, dt, z):
     """One Euler step of a mean-1 CIR variance multiplier:
     dv = kappa*(1-v)dt + eta*sqrt(v)*dW. Shared by every -SV model's
     stepping loop (LGM*_SV, GBM_SV, FXGBM_SV) so the (documented) O(dt)
-    discretization behavior is identical across factor kinds."""
+    discretization behavior is identical across factor kinds.
+
+    z is the (already-leverage-correlated, if applicable) standard normal
+    driving this step's variance shock -- see leveraged_vol_shock() below
+    for how callers should construct it from the asset/rate factor's own
+    Brownian draw and the calibrated sv.rho, rather than drawing an
+    independent standard normal directly."""
     dv = kappa * (1.0 - v_prev) * dt + eta * np.sqrt(np.maximum(v_prev, 0.0) * dt) * z
     return np.maximum(v_prev + dv, 1e-10)
+
+
+def leveraged_vol_shock(z_asset, rho, rng, n_paths):
+    """Standard normal z_v, correlated to the asset/rate factor's own
+    Brownian shock z_asset via corr(z_v, z_asset) = rho -- the standard
+    leverage-effect construction z_v = rho*z_asset + sqrt(1-rho^2)*z_perp,
+    z_perp ~ N(0,1) independent of z_asset.
+
+    Fixes a real gap: sv.rho is calibrated (fit_skew_smile, or a literature
+    prior when no smile data exists -- see calibration/priors.py) and
+    reported in every -SV model's assumptions, but until this function was
+    introduced, every -SV stepping loop (LGM*_SV, GBM_SV, FXGBM_SV) drew
+    the CIR variance shock as an INDEPENDENT standard normal, silently
+    ignoring rho entirely -- the fit/reported leverage parameter had zero
+    effect on the actual simulated paths. See
+    risk_engine/examples/regulatory_readiness_report.html Sec.01 for the
+    audit finding this was flagged from.
+
+    rho=0.0 reduces exactly to an independent draw (z_v = z_perp), so this
+    is a strict generalization, not a behavior change for any factor whose
+    calibrated/prior rho happens to be 0 (e.g. the FX_SV_PRIOR default)."""
+    z_perp = rng.standard_normal(n_paths)
+    if rho == 0.0:
+        return z_perp
+    return rho * z_asset + math.sqrt(max(0.0, 1.0 - rho * rho)) * z_perp

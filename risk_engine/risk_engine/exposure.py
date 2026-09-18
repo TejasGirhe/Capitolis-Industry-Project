@@ -182,7 +182,9 @@ def compute_per_trade_exposure_profile(trade_id: str, curve_result_for_trade, an
     assumption) is involved here at all."""
     from .netting.netting_set import NettingSet
     from .netting.counterparty import Counterparty
-    solo = Counterparty(id=trade_id, netting_sets=[NettingSet(id=trade_id, trade_ids=[trade_id])])
+    solo = Counterparty(id=trade_id, netting_sets=[
+        NettingSet(id=trade_id, counterparty_id=trade_id, trade_ids=[trade_id])
+    ])
     return compute_exposure_profile(solo, curve_result_for_trade, anchor_dates, ref_date, margin_model)
 
 

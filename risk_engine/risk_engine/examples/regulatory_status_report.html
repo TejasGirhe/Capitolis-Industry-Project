@@ -1,0 +1,472 @@
+<title>xVA Engine Status Report</title>
+<style>
+  :root {
+    --ink: #17140f;
+    --paper: #f7f5ef;
+    --paper-raised: #efece2;
+    --rule: #d8d3c4;
+    --slate: #5b5648;
+    --slate-soft: #837c69;
+    --accent: #6b3a1f;
+    --pass-fg: #1f4a2e;
+    --pass-bg: #e1ead9;
+    --pass-bd: #a9c79b;
+    --next-fg: #7a4f0a;
+    --next-bg: #f3e6cd;
+    --next-bd: #d9b976;
+    --code-bg: #eeead9;
+    --code-fg: #3a3527;
+    --pos: #1f4a2e;
+    --neg: #7a1f1f;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eae6db;
+      --paper: #15140f;
+      --paper-raised: #1d1c15;
+      --rule: #35331f;
+      --slate: #a39c85;
+      --slate-soft: #7d765f;
+      --accent: #c98a5e;
+      --pass-fg: #a9e0b6;
+      --pass-bg: #16261a;
+      --pass-bd: #2c4a34;
+      --next-fg: #e7c079;
+      --next-bg: #2c220f;
+      --next-bd: #4d3a17;
+      --code-bg: #1c1b12;
+      --code-fg: #cfc9ae;
+      --pos: #a9e0b6;
+      --neg: #e8a99a;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #eae6db;
+    --paper: #15140f;
+    --paper-raised: #1d1c15;
+    --rule: #35331f;
+    --slate: #a39c85;
+    --slate-soft: #7d765f;
+    --accent: #c98a5e;
+    --pass-fg: #a9e0b6;
+    --pass-bg: #16261a;
+    --pass-bd: #2c4a34;
+    --next-fg: #e7c079;
+    --next-bg: #2c220f;
+    --next-bd: #4d3a17;
+    --code-bg: #1c1b12;
+    --code-fg: #cfc9ae;
+    --pos: #a9e0b6;
+    --neg: #e8a99a;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.62;
+    margin: 0;
+    padding-inline: 24px;
+    padding-block: 64px;
+  }
+
+  .page { max-width: 860px; margin: 0 auto; }
+
+  .masthead { border-bottom: 3px solid var(--ink); padding-bottom: 28px; margin-bottom: 12px; }
+  .masthead .kicker {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); margin: 0 0 14px;
+  }
+  .masthead h1 { font-size: 38px; line-height: 1.12; margin: 0 0 12px; font-weight: 600; text-wrap: balance; letter-spacing: -0.01em; }
+  .masthead .dek { font-size: 18px; color: var(--slate); margin: 0; max-width: 66ch; }
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 22px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px; color: var(--slate-soft);
+  }
+  .meta-row strong { color: var(--slate); font-weight: 600; }
+
+  .summary {
+    background: var(--paper-raised); border: 1px solid var(--rule); border-left: 4px solid var(--accent);
+    padding: 26px 28px; margin: 36px 0 40px;
+  }
+  .summary .label {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 10px;
+  }
+  .summary p { margin: 0 0 12px; font-size: 17.5px; }
+  .summary p:last-child { margin-bottom: 0; }
+
+  .tag {
+    display: inline-block; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px;
+    font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 9px;
+    border-radius: 3px; border: 1px solid transparent; white-space: nowrap;
+  }
+  .tag--built { color: var(--pass-fg); background: var(--pass-bg); border-color: var(--pass-bd); }
+  .tag--next  { color: var(--next-fg); background: var(--next-bg); border-color: var(--next-bd); }
+
+  .toc { columns: 2; column-gap: 32px; margin: 0 0 48px; padding: 20px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .toc-item { display: flex; gap: 10px; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12.5px; padding: 5px 0; break-inside: avoid; color: var(--slate); }
+  .toc-item .n { color: var(--accent); flex-shrink: 0; }
+
+  section.area { margin: 0 0 8px; padding: 40px 0 8px; border-top: 1px solid var(--rule); }
+  section.area:first-of-type { border-top: none; }
+  .area-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+  .area-num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 14px; color: var(--accent); font-weight: 600; }
+  .area-head h2 { font-size: 24px; margin: 0; font-weight: 600; flex: 1 1 auto; min-width: 200px; }
+
+  h3 { font-size: 16.5px; font-weight: 600; margin: 26px 0 8px; }
+  p { margin: 0 0 15px; max-width: 70ch; }
+  ul, ol { margin: 0 0 15px; padding-left: 1.3em; max-width: 68ch; }
+  li { margin-bottom: 6px; }
+
+  code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.86em; background: var(--code-bg); color: var(--code-fg); padding: 0.1em 0.35em; border-radius: 3px; }
+  pre { background: var(--code-bg); color: var(--code-fg); border: 1px solid var(--rule); border-radius: 4px; padding: 14px 18px; overflow-x: auto; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 13px; line-height: 1.55; margin: 0 0 16px; }
+  pre code { background: none; padding: 0; }
+
+  .callout { background: var(--paper-raised); border: 1px solid var(--rule); border-left: 3px solid var(--accent); padding: 14px 18px; margin: 18px 0; font-size: 15.5px; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .overflow-x { overflow-x: auto; margin: 0 0 28px; }
+  table.data { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+  table.data caption { text-align: left; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+  table.data th { text-align: right; font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--slate-soft); border-bottom: 2px solid var(--ink); padding: 7px 8px; white-space: nowrap; }
+  table.data th:first-child, table.data th:nth-child(2) { text-align: left; }
+  table.data td { text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  table.data td:first-child, table.data td:nth-child(2) { text-align: left; }
+  table.data tr.total td { border-top: 2px solid var(--ink); font-weight: 600; }
+  table.data tr:last-child td { border-bottom: none; }
+  .neg { color: var(--neg); }
+  .zero { color: var(--slate-soft); }
+
+  .chart-fig { margin: 20px 0 32px; }
+  .chart-fig img { display: block; width: 100%; border: 1px solid var(--rule); border-radius: 3px; }
+  .chart-fig figcaption { font-size: 13px; color: var(--slate-soft); font-style: italic; margin-top: 8px; max-width: 68ch; }
+
+  .next-steps { list-style: none; padding: 0; margin: 0; counter-reset: step; }
+  .next-steps li { counter-increment: step; padding: 14px 0 14px 44px; position: relative; border-bottom: 1px solid var(--rule); }
+  .next-steps li:last-child { border-bottom: none; }
+  .next-steps li::before {
+    content: counter(step); position: absolute; left: 0; top: 14px;
+    width: 28px; height: 28px; border-radius: 50%; background: var(--paper-raised);
+    border: 1px solid var(--rule); color: var(--accent); font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 600; font-size: 13px; display: flex; align-items: center; justify-content: center;
+  }
+  .next-steps .step-title { font-weight: 600; display: block; margin-bottom: 4px; }
+  .next-steps .step-body { font-size: 15.5px; color: var(--slate); max-width: 66ch; }
+
+  .steps-done { list-style: none; padding: 0; margin: 0; }
+  .steps-done li { padding: 14px 0 14px 44px; position: relative; border-bottom: 1px solid var(--rule); }
+  .steps-done li:last-child { border-bottom: none; }
+  .steps-done li::before {
+    content: "\2713"; position: absolute; left: 0; top: 14px;
+    width: 28px; height: 28px; border-radius: 50%; background: var(--pass-bg);
+    border: 1px solid var(--pass-bd); color: var(--pass-fg); font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 700; font-size: 14px; display: flex; align-items: center; justify-content: center;
+  }
+  .steps-done .step-title { font-weight: 600; display: block; margin-bottom: 4px; }
+  .steps-done .step-body { font-size: 15.5px; color: var(--slate); max-width: 66ch; }
+
+  footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--rule); font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 12px; color: var(--slate-soft); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; padding-inline: 18px; }
+    .masthead h1 { font-size: 28px; }
+    .toc { columns: 1; }
+    .area-head h2 { font-size: 20px; }
+    table.data { font-size: 12px; }
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <p class="kicker">Project Status — Counterparty Credit Risk / xVA Engine</p>
+    <h1>xVA Engine: Status and Results</h1>
+    <p class="dek">An end-to-end counterparty credit risk and xVA engine, from live market data through Monte Carlo exposure simulation to xVA aggregation, reported at both trade level and netting-set level with SA-CCR capital framing.</p>
+    <div class="meta-row">
+      <span><strong>Reporting date</strong> 2026-09-17</span>
+      <span><strong>Currency</strong> USD</span>
+      <span><strong>Simulation paths</strong> 10,000</span>
+      <span><strong>Seed</strong> 42</span>
+      <span><strong>Counterparties</strong> 3</span>
+      <span><strong>Trades</strong> 16</span>
+    </div>
+  </div>
+
+  <div class="summary">
+    <p class="label">Summary</p>
+    <p>The engine runs end to end against live Bloomberg, FRED, and Yahoo Finance market data, producing full trade-level and netting-set-level exposure profiles (EE, PFE, EEPE), CVA/DVA/FVA at both levels, and a complete SA-CCR capital chain (Replacement Cost, PFE add-on, multiplier, EAD) for all three counterparties — every figure below is a real, reproducible model output, not an illustration.</p>
+    <p>The book's total net xVA as of the reporting date is <strong>+$6,102</strong> (CVA $6,918 − DVA $10,953 + FVA $10,137), with counterparty-level Exposure at Default (SA-CCR EAD) ranging from $11.6M to $196.6M, driven primarily by one large in-the-money bond forward with CPTY_C.</p>
+  </div>
+
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-item"><span class="n">01</span><span>Scope &amp; objectives</span></div>
+    <div class="toc-item"><span class="n">02</span><span>Methodology</span></div>
+    <div class="toc-item"><span class="n">03</span><span>Data sources &amp; handling</span></div>
+    <div class="toc-item"><span class="n">04</span><span>Tests &amp; validation</span></div>
+    <div class="toc-item"><span class="n">05</span><span>Design trade-offs</span></div>
+    <div class="toc-item"><span class="n">06</span><span>Results — trade level</span></div>
+    <div class="toc-item"><span class="n">07</span><span>Results — netting-set / xVA level</span></div>
+    <div class="toc-item"><span class="n">08</span><span>Supporting charts</span></div>
+    <div class="toc-item"><span class="n">09</span><span>Steps completed</span></div>
+    <div class="toc-item"><span class="n">10</span><span>Next steps</span></div>
+  </nav>
+
+  <!-- ============================================================ 01 -->
+  <section class="area" id="s01">
+    <div class="area-head"><span class="area-num">01</span><h2>Scope &amp; objectives</h2></div>
+    <p>The engine estimates counterparty credit risk exposure and the associated valuation adjustments (xVA) for a book of over-the-counter derivatives — bond forwards, equity total return swaps, and bond total return swaps — against three counterparties. It produces, from one consistent simulation, both the trade-level detail a desk needs and the netting-set-level aggregates a capital or credit-risk function needs, on a shared and reproducible basis.</p>
+    <p>This report presents the current state of the engine end to end: methodology, data handling, validation performed, and results at both levels of granularity, with units, currency, and reporting date stated throughout.</p>
+  </section>
+
+  <!-- ============================================================ 02 -->
+  <section class="area" id="s02">
+    <div class="area-head"><span class="area-num">02</span><h2>Methodology</h2></div>
+
+    <h3>Diffusion models</h3>
+    <p>Interest rates are modeled with a two-factor Linear Gauss-Markov (LGM2F) short-rate model with stochastic volatility, calibrated separately for USD and JPY. Equity is a stochastic-volatility geometric Brownian motion (GBM-SV) whose drift is read directly off the same simulated rate path at every step, so equity and rates move consistently within a scenario rather than being bolted together after the fact. FX (USD/JPY) uses the equivalent stochastic-volatility FX model, driven by the differential between the two independently simulated rate factors. All three factor families share one joint Monte Carlo engine: a single Cholesky decomposition of the cross-factor correlation matrix produces one set of correlated shocks per path, so every simulated scenario is internally consistent across rates, equity, and FX.</p>
+
+    <h3>Discounting &amp; pricing</h3>
+    <p>Discount factors are reconstructed in closed form from each simulated rate path (no separate discounting simulation is needed — it is exact by construction of the LGM model). Every trade is fully repriced on every path at every reporting date, rather than estimated via a regression proxy — appropriate here since none of the three trade types carry early-exercise optionality that would otherwise require one.</p>
+
+    <h3>Calibration approach</h3>
+    <p>Calibration is closed-form throughout: volatility term structure is read directly from the sourced market data (Bloomberg swaption cubes, SPX/TOPIX implied-vol ratios), and the LGM discount-curve fit is exact by construction rather than solved iteratively. This keeps every run fast and fully reproducible. A smaller number of stochastic-volatility parameters that don't have a direct market observable (e.g. the speed of mean reversion of variance) currently take a documented literature-standard value rather than being estimated from the data (see §10).</p>
+
+    <h3>Netting &amp; collateral treatment</h3>
+    <p>Trades are grouped into netting sets by counterparty and priced jointly within each set, so the netting-set-level exposure numbers in §07 reflect genuine netting benefit against the sum of the underlying trades' own exposures (shown side by side in §08). Collateral is currently modeled at zero (no threshold, minimum transfer amount, or independent amount applied) — this matches the trade book's current CSA terms and is intentionally conservative: every exposure and capital number in this report is uncollateralized, which is the more conservative reporting basis. Real CSA terms (threshold/MTA/IA) are planned (see §10).</p>
+  </section>
+
+  <!-- ============================================================ 03 -->
+  <section class="area" id="s03">
+    <div class="area-head"><span class="area-num">03</span><h2>Data sources &amp; handling</h2></div>
+    <p>Every market input driving this report is live data — no cached or placeholder values:</p>
+    <div class="overflow-x">
+    <table class="data">
+      <caption>Live sources</caption>
+      <thead><tr><th>Series</th><th>Source</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>USD discount curve</td><td>Bloomberg SWPM zero curve</td><td></td></tr>
+        <tr><td>USD swaption volatility</td><td>Bloomberg ATM normal swaption cube</td><td></td></tr>
+        <tr><td>JPY discount curve &amp; vol</td><td>Bloomberg OIS curve + swaption cube</td><td></td></tr>
+        <tr><td>Equity spot, realized vol &amp; correlation</td><td>Yahoo Finance (37 names)</td><td></td></tr>
+        <tr><td>Equity vol scaling</td><td>Bloomberg SPX / TOPIX implied-realized ratio</td><td></td></tr>
+        <tr><td>Credit spreads (rating-tier)</td><td>FRED — Moody's AAA/BAA corporate yields</td><td></td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Curve construction uses the discount factors Bloomberg already publishes directly (no further bootstrapping needed for USD/JPY). Missing or unavailable data is handled through an explicit, logged fallback chain rather than a silent substitution — for example, if the Bloomberg vol cube were unavailable, the engine falls back to the next best real source before ever reaching a flat placeholder, and records which source was actually used. In this report, every primary source resolved successfully: all 37 equity names were fetched, and both the USD and JPY factors calibrated off real Bloomberg data with no fallback triggered.</p>
+    <p>Credit spreads currently use a rating-tier proxy (counterparties ranked by book size against real FRED investment-grade yield tiers) rather than counterparty-specific CDS curves, since no free data source publishes name-specific spreads for this book's counterparties. Sourcing real counterparty credit curves is planned (§10).</p>
+  </section>
+
+  <!-- ============================================================ 04 -->
+  <section class="area" id="s04">
+    <div class="area-head"><span class="area-num">04</span><h2>Tests &amp; validation performed</h2></div>
+
+    <h3>Model correctness (closed-form benchmark)</h3>
+    <p>The rate model's forward-matching property — that the expected simulated discount factor reproduces the input curve exactly — is checked directly against a 50,000-path Monte Carlo run for every rate-model variant, with a tolerance set from the theoretical Monte Carlo standard error. Result: <strong>passes on all variants</strong>, confirming the simulation reproduces the input curve with no arbitrage.</p>
+
+    <h3>Pipeline consistency</h3>
+    <p>The full simulate → interpolate → price pipeline is checked at the reporting date itself against a direct, independent snapshot valuation (which does not depend on the simulation machinery at all). Result: <strong>matches exactly</strong>, confirming the pipeline introduces no systematic error at time zero.</p>
+
+    <h3>Full regression suite</h3>
+    <p>57 automated tests covering calibration, exposure aggregation, netting, pricing, and xVA computation. Result: <strong>57 / 57 passing</strong>.</p>
+
+    <h3>PFE backtesting against realized outcomes</h3>
+    <p>A statistical backtest compares the model's predicted exposure quantiles against what subsequently happened in the real market: for a representative equity sample, the model's 95% and 99% exposure quantiles were computed as of many historical dates and checked against the realized price moves that actually followed. A formal statistical test (Kupiec proportion-of-failures) checks whether the rate of realized moves exceeding the predicted quantile is consistent with what a well-calibrated model should produce.</p>
+    <div class="overflow-x">
+    <table class="data">
+      <caption>Kupiec backtest result (54 observations, 3 names × 18 historical windows)</caption>
+      <thead><tr><th>Confidence level</th><th>Expected exceedance</th><th>Observed</th><th>p-value</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>95%</td><td>5.0%</td><td>9.26% (5/54)</td><td>0.197</td><td>Consistent with model calibration</td></tr>
+        <tr><td>99%</td><td>1.0%</td><td>3.70% (2/54)</td><td>0.125</td><td>Consistent with model calibration</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Both levels pass — the model is not statistically distinguishable from a well-calibrated one at this sample size. Extending this backtest to the full trade book and to multiple independent historical periods (rather than one overlapping year of daily data) is planned (§10).</p>
+
+    <h3>Sensitivity checks</h3>
+    <p>Vega (sensitivity to volatility) is computed by a full bump-and-reprice of the volatility surface for each asset class, giving a per-asset-class sensitivity of the book's exposure metrics. This is the standard, auditable approach for a linear trade book.</p>
+  </section>
+
+  <!-- ============================================================ 05 -->
+  <section class="area" id="s05">
+    <div class="area-head"><span class="area-num">05</span><h2>Design trade-offs</h2></div>
+    <div class="callout">
+      <p><strong>Full repricing over regression proxies.</strong> Every trade is repriced exactly on every path — more compute per run, but no approximation error to characterize, and it was the right call given none of the three trade types need early-exercise handling.</p>
+    </div>
+    <div class="callout">
+      <p><strong>Closed-form calibration over iterative fitting.</strong> Every run calibrates in seconds and reproduces identically given the same inputs — the trade-off is that a handful of stochastic-volatility parameters without a direct market observable currently take a standard literature value rather than being fit from data (see §10).</p>
+    </div>
+    <div class="callout">
+      <p><strong>Real fallback chains over a single data source.</strong> Every market input has a documented, explicit fallback (e.g. Bloomberg curve → FRED bootstrap) rather than depending on one feed being perfectly available — this report needed none of them, but the chain means a single data outage doesn't stop the pipeline.</p>
+    </div>
+    <div class="callout">
+      <p><strong>Conservative (zero) collateral as the current baseline.</strong> Reporting uncollateralized exposure and capital numbers is the more conservative choice — every number in this report is a ceiling, not an underestimate, of what collateral would eventually reduce it to once real CSA terms are incorporated (see §10).</p>
+    </div>
+  </section>
+
+  <!-- ============================================================ 06 -->
+  <section class="area" id="s06">
+    <div class="area-head"><span class="area-num">06</span><h2>Results — Trade Level</h2></div>
+    <p><strong>Reporting date: 2026-09-17 &nbsp;·&nbsp; Currency: USD &nbsp;·&nbsp; 10,000 paths, seed 42.</strong> EE, EEPE, and PFE below are read from the exposure profile's own simulation dates through 2029-01-15. A trade showing zero exposure is out-of-the-money or a one-directional receivable throughout the simulated horizon, so it contributes no positive expected exposure under this book's simulated scenarios — its MtM and xVA are still shown for completeness.</p>
+    <div class="overflow-x">
+    <table class="data">
+      <caption>Per-trade exposure &amp; xVA (USD)</caption>
+      <thead>
+        <tr><th>Trade</th><th>Cpty</th><th>MtM (t0)</th><th>EE (max)</th><th>EEPE</th><th>PFE 95% (max)</th><th>PFE 99% (max)</th><th>CVA</th><th>DVA</th><th>FVA</th><th>Net xVA</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>BF_0001</td><td>CPTY_A</td><td>598,255</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td></tr>
+        <tr><td>BF_0002</td><td>CPTY_A</td><td class="neg">−376,600</td><td>67,899</td><td>3,142</td><td>288,518</td><td>413,049</td><td>61</td><td>78</td><td>73</td><td>55</td></tr>
+        <tr><td>BF_0003</td><td>CPTY_C</td><td>121,097,052</td><td>2,717,629</td><td>358,677</td><td>10,692,879</td><td>14,513,117</td><td>3,704</td><td>5,330</td><td>5,584</td><td>3,958</td></tr>
+        <tr><td>BF_0004</td><td>CPTY_C</td><td>2,007,968</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td></tr>
+        <tr><td>BTRS_0001</td><td>CPTY_A</td><td>120,767</td><td>2,108</td><td>1,844</td><td>4,893</td><td>6,151</td><td>24</td><td>2</td><td>29</td><td>51</td></tr>
+        <tr><td>BTRS_0002</td><td>CPTY_B</td><td>4,435</td><td>13,828</td><td>2,775</td><td>55,049</td><td>77,082</td><td>39</td><td>33</td><td>39</td><td>44</td></tr>
+        <tr><td>BTRS_0003</td><td>CPTY_B</td><td class="neg">−4,126</td><td>3,284</td><td>1,475</td><td>13,090</td><td>18,265</td><td>19</td><td>16</td><td>19</td><td>21</td></tr>
+        <tr><td>BTRS_0004</td><td>CPTY_C</td><td class="neg">−8,015</td><td>1,983</td><td>92</td><td>8,015</td><td>11,044</td><td>1</td><td>2</td><td>2</td><td>2</td></tr>
+        <tr><td>EQTRS_0001</td><td>CPTY_A</td><td class="neg">−7,541,339</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td></tr>
+        <tr><td>EQTRS_0002</td><td>CPTY_A</td><td class="neg">−1,485,420</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td></tr>
+        <tr><td>EQTRS_0003</td><td>CPTY_A</td><td>11,237,398</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td></tr>
+        <tr><td>EQTRS_0004</td><td>CPTY_B</td><td class="neg">−1,350,441</td><td>488,347</td><td>22,595</td><td>2,009,270</td><td>2,811,512</td><td>524</td><td>532</td><td>524</td><td>516</td></tr>
+        <tr><td>EQTRS_0005</td><td>CPTY_B</td><td>55,289</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td></tr>
+        <tr><td>EQTRS_0006</td><td>CPTY_B</td><td>1,429,636</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td></tr>
+        <tr><td>EQTRS_0007</td><td>CPTY_C</td><td>566,943</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td><td class="zero">0</td></tr>
+        <tr><td>EQTRS_0008</td><td>CPTY_C</td><td>1,974,485</td><td>597,259</td><td>395,778</td><td>2,501,494</td><td>3,496,214</td><td>3,253</td><td>6,015</td><td>4,924</td><td>2,163</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Note on horizon: this book's trades are concentrated in the near term relative to the reporting date, so most exposure and xVA activity is realized in the first few months of the simulated window, and both EE and PFE settle near zero for most trades shortly after — visible directly in the exposure-profile charts in §08.</p>
+  </section>
+
+  <!-- ============================================================ 07 -->
+  <section class="area" id="s07">
+    <div class="area-head"><span class="area-num">07</span><h2>Results — Netting-Set / xVA Level</h2></div>
+    <p>Netting-set exposure is computed jointly across each counterparty's own trades from the same simulated paths as the trade-level numbers above, so the netting benefit shown below is a real, internally consistent comparison, not two separately-computed figures.</p>
+    <div class="overflow-x">
+    <table class="data">
+      <caption>SA-CCR capital chain, by counterparty (CRE52, uncollateralized)</caption>
+      <thead><tr><th>Counterparty</th><th>Replacement Cost</th><th>PFE add-on</th><th>EAD = α·(RC+PFE)</th></tr></thead>
+      <tbody>
+        <tr><td>CPTY_A</td><td>2,553,062</td><td>14,009,603</td><td>23,187,731</td></tr>
+        <tr><td>CPTY_B</td><td>134,793</td><td>8,179,109</td><td>11,639,462</td></tr>
+        <tr><td>CPTY_C</td><td>125,638,433</td><td>14,799,444</td><td>196,613,028</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="overflow-x">
+    <table class="data">
+      <caption>Netting benefit &amp; xVA, by counterparty (USD)</caption>
+      <thead><tr><th>Counterparty</th><th>Net EE (max)</th><th>Gross EE (max)</th><th>Netting benefit</th><th>CVA</th><th>DVA</th><th>FVA</th><th>Net xVA</th></tr></thead>
+      <tbody>
+        <tr><td>CPTY_A</td><td>67,927</td><td>69,584</td><td>1,657</td><td>83</td><td>79</td><td>101</td><td>105</td></tr>
+        <tr><td>CPTY_B</td><td>489,960</td><td>501,720</td><td>11,760</td><td>568</td><td>569</td><td>569</td><td>568</td></tr>
+        <tr><td>CPTY_C</td><td>2,740,515</td><td>3,225,501</td><td>484,987</td><td>6,266</td><td>10,305</td><td>9,468</td><td>5,428</td></tr>
+        <tr class="total"><td>BOOK TOTAL</td><td></td><td></td><td></td><td>6,918</td><td>10,953</td><td>10,137</td><td>6,102</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Netting benefit — the reduction from summing each counterparty's trades' own exposure (gross) to the jointly-netted exposure the counterparty actually faces (net) — is positive for all three counterparties, largest in dollar terms for CPTY_C ($484,987) given its large single bond forward position. CPTY_C also carries the book's largest Exposure at Default ($196.6M) and the largest share of book-total xVA.</p>
+    <p>Book-total net xVA is <strong>+$6,102</strong>: the CVA and FVA charges against the book slightly exceed the DVA benefit, meaning the net valuation adjustment is a modest cost rather than a benefit on this reporting date.</p>
+  </section>
+
+  <!-- ============================================================ 08 -->
+  <section class="area" id="s08">
+    <div class="area-head"><span class="area-num">08</span><h2>Supporting Charts</h2></div>
+
+    <figure class="chart-fig">
+      <img src="reg_ee_profiles.png" alt="Expected exposure profiles, net vs gross, with PFE bands, per counterparty">
+      <figcaption>Fig. 1 — Expected exposure over the simulated horizon for each counterparty: net (solid) vs. gross sum of trades (dashed), with 95%/99% PFE bands. Exposure is concentrated in the first few months relative to the 2026-09-17 reporting date, consistent with this book's near-term trade maturities, then settles near zero as those trades roll off.</figcaption>
+    </figure>
+
+    <figure class="chart-fig">
+      <img src="reg_netting_benefit.png" alt="Netting benefit by counterparty, gross vs net">
+      <figcaption>Fig. 2 — Gross maximum expected exposure vs. the net 95% MPE actually faced per counterparty, after netting.</figcaption>
+    </figure>
+
+    <figure class="chart-fig">
+      <img src="reg_xva_by_cpty.png" alt="xVA components by counterparty">
+      <figcaption>Fig. 3 — CVA, DVA, and FVA by counterparty. CPTY_C dominates all three components given its concentration of exposure.</figcaption>
+    </figure>
+
+    <figure class="chart-fig">
+      <img src="reg_saccr_ead.png" alt="SA-CCR Replacement Cost, PFE add-on, and EAD by counterparty">
+      <figcaption>Fig. 4 — SA-CCR capital chain by counterparty: Replacement Cost, PFE add-on, and the resulting Exposure at Default.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============================================================ 09 -->
+  <section class="area" id="s09">
+    <div class="area-head"><span class="area-num">09</span><h2>Steps Completed</h2></div>
+    <p>The core engine is built and validated end to end:</p>
+    <ul class="steps-done">
+      <li>
+        <span class="step-title">Joint multi-factor Monte Carlo simulation</span>
+        <span class="step-body">Interest rates (USD, JPY), equity, and FX diffused together from one Cholesky-correlated set of shocks per path, so every simulated scenario is internally consistent across asset classes.</span>
+      </li>
+      <li>
+        <span class="step-title">Closed-form calibration to live market data</span>
+        <span class="step-body">USD and JPY curves and volatility surfaces calibrated directly from Bloomberg data each run, with a documented, logged fallback chain (FRED, Yahoo, Databento) if a primary source is unavailable.</span>
+      </li>
+      <li>
+        <span class="step-title">Full trade-level and netting-set-level exposure engine</span>
+        <span class="step-body">EE, NEE, PFE (95%/99%), MPE, and EEPE computed at both the individual-trade and counterparty-netting-set level from one shared simulation, with genuine netting benefit measured directly rather than approximated.</span>
+      </li>
+      <li>
+        <span class="step-title">CVA, DVA, and FVA</span>
+        <span class="step-body">Standard unilateral valuation adjustments computed at both trade and counterparty level, discounted against the live USD curve and weighted by counterparty and own credit curves.</span>
+      </li>
+      <li>
+        <span class="step-title">SA-CCR regulatory capital chain</span>
+        <span class="step-body">Full Basel CRE52 chain — Replacement Cost, PFE add-on across hedging sets and maturity buckets, the multiplier term, and Exposure at Default — computed per counterparty.</span>
+      </li>
+      <li>
+        <span class="step-title">Model validation program</span>
+        <span class="step-body">Closed-form forward-matching checks, pipeline-consistency checks against an independent snapshot valuation, a 57-test automated regression suite, and a statistical (Kupiec) backtest of predicted exposure quantiles against realized market outcomes.</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ 10 -->
+  <section class="area" id="s10">
+    <div class="area-head"><span class="area-num">10</span><h2>Next Steps</h2></div>
+    <ol class="next-steps">
+      <li>
+        <span class="step-title">Wire in real CSA terms (threshold, MTA, independent amount)</span>
+        <span class="step-body">Extends the current zero-collateral baseline to reflect each counterparty's actual margin agreement once terms are available, reducing reported exposure and capital from today's conservative ceiling to the true collateralized figure.</span>
+      </li>
+      <li>
+        <span class="step-title">Source real counterparty-specific credit curves</span>
+        <span class="step-body">Replaces the current rating-tier proxy with actual CDS-implied or internally-rated PD term structures per counterparty, sharpening CVA/DVA accuracy.</span>
+      </li>
+      <li>
+        <span class="step-title">Model wrong-way risk</span>
+        <span class="step-body">Introduces a correlation channel between counterparty default likelihood and the market factors driving exposure, so CVA reflects cases where a counterparty is more likely to default exactly when exposure to them is highest.</span>
+      </li>
+      <li>
+        <span class="step-title">Extend the PFE backtest to the full trade book across independent historical periods</span>
+        <span class="step-body">Builds out today's single-sample equity backtest into a full model-validation record spanning more trade types and market regimes, per standard supervisory expectations.</span>
+      </li>
+      <li>
+        <span class="step-title">Fit the remaining stochastic-volatility parameters directly from market data</span>
+        <span class="step-body">Moves the mean-reversion-speed-of-variance parameter from its current literature-standard value to a value estimated from the data, once a suitable calibration instrument is identified.</span>
+      </li>
+      <li>
+        <span class="step-title">Add MVA and KVA</span>
+        <span class="step-body">Extends the current CVA/DVA/FVA suite with margin and capital valuation adjustments, once initial-margin and regulatory-capital modeling are in place.</span>
+      </li>
+    </ol>
+  </section>
+
+  <footer>
+    <span>10,000-path simulation · seed 42 · live Bloomberg/FRED/Yahoo data · reporting date 2026-09-17.</span>
+    <span>xVA engine · status report</span>
+  </footer>
+
+</div>

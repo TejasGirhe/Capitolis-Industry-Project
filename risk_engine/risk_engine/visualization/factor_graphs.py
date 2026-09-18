@@ -35,17 +35,42 @@ def _rate_level_paths(precache, factor) -> np.ndarray:
 
 
 def _spot_level_paths(precache, factor) -> np.ndarray:
+    """Second, independent call site with the SAME single-rate-factor
+    assumption scenario_market.build_market_states_at used to have (fixed
+    when a real JPY rate factor was added alongside USD -- see that
+    module's drift_rate_factor_by_spot/foreign_rate_factor_by_spot). This
+    one was missed in that pass and broke with a real ValueError the first
+    time a factor fan chart was plotted for a book with a real foreign FX
+    rate factor: next(iter(precache.rate_models)) picks an ARBITRARY rate
+    factor (dict order), which is ambiguous once USD and JPY both exist,
+    and never looked up a foreign leg at all. Fixed the same way: use the
+    explicit drift/foreign mappings JointSimResult now carries, with the
+    old "only one rate factor" behavior kept as a fallback for a precache
+    that predates those mappings (e.g. a cached/pickled older result)."""
     model = precache.spot_models[factor]
     cached = precache.spot_states[factor]
     n_paths, n_dates, _ = cached.shape
-    rate_factor = next(iter(precache.rate_models)) if precache.rate_models else None
+
+    drift_map = getattr(precache, "drift_rate_factor_by_spot", None) or {}
+    foreign_map = getattr(precache, "foreign_rate_factor_by_spot", None) or {}
+    rate_factor = drift_map.get(factor)
+    if rate_factor is None:
+        rate_factor = next(iter(precache.rate_models)) if precache.rate_models else None
+    foreign_factor = foreign_map.get(factor)
+
     rate_cached = precache.rate_states.get(rate_factor) if rate_factor else None
+    foreign_cached = precache.rate_states.get(foreign_factor) if foreign_factor else None
+
     out = np.zeros((n_paths, n_dates))
     for d_idx, t in enumerate(precache.sim_times):
         rate_state = rate_cached[:, d_idx, :] if rate_cached is not None else None
+        foreign_state = foreign_cached[:, d_idx, :] if foreign_cached is not None else None
         for p in range(n_paths):
             rs = rate_state[p] if rate_state is not None else None
-            out[p, d_idx] = model.level_at(cached[p, d_idx, :], t, rate_state=rs)
+            kwargs = {}
+            if foreign_state is not None:
+                kwargs["foreign_rate_state"] = foreign_state[p]
+            out[p, d_idx] = model.level_at(cached[p, d_idx, :], t, rate_state=rs, **kwargs)
     return out
 
 
